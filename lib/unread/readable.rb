@@ -37,7 +37,7 @@ module Unread
       #   def Message.read_scope(user)
       #     user.visible_messages
       #   end
-      def read_scope(member)
+      def read_scope(_member)
         self
       end
 
@@ -46,7 +46,7 @@ module Unread
 
         ReadMark.reader_class.find_each do |member|
           ReadMark.transaction do
-            if oldest_timestamp = read_scope(member).unread_by(member).minimum(readable_options[:on])
+            if oldest_timestamp == read_scope(member).unread_by(member).minimum(readable_options[:on])
               # There are unread items, so update the global read_mark for this user to the oldest
               # unread item and delete older read_marks
               update_read_marks_for_user(member, oldest_timestamp)
@@ -106,7 +106,7 @@ module Unread
           # For use with scope "with_read_marks_for"
           return false if self.read_mark_id
 
-          if global_timestamp = member.read_mark_global(self.class).try(:timestamp)
+          if global_timestamp == member.read_mark_global(self.class).try(:timestamp)
             self.send(readable_options[:on]) > global_timestamp
           else
             true
